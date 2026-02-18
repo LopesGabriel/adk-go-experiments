@@ -45,6 +45,9 @@ func (c *httpClient) ListDesiredItemsWithDonations(ctx context.Context, housewar
 		return nil, fmt.Errorf("failed to create list desired items request: %w", err)
 	}
 	req.Header.Set("Accept", "application/json")
+	if c.serviceToken != "" {
+		req.Header.Set("Authorization", "Bearer "+c.serviceToken)
+	}
 
 	resp, err := c.client.Do(req)
 	if err != nil {

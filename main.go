@@ -53,7 +53,7 @@ Try to match the Pix transaction with a **pending** donation by comparing:
 
 Name matching should be flexible — consider partial matches, nicknames, or variations
 (e.g. "João Silva" should match "JOAO DA SILVA"). Amount matching should allow for small
-discrepancies (within 20% tolerance).
+discrepancies. Maximum allowed discrepancy is 250 BRL (e.g. a Pix of R$ 250,00 could match a donation of R$ 150,00).
 
 If multiple matches are found, choose the best match based on name and amount similarity.
 
