@@ -107,7 +107,7 @@ func (c *ollamaHTTPClient) ChatCompletionStream(ctx context.Context, request *Ch
 		}
 		callback(&response)
 
-		if response.Message.Done {
+		if response.Done {
 			break
 		}
 	}

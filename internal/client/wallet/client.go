@@ -17,10 +17,11 @@ type Client interface {
 }
 
 type httpClient struct {
-	baseURL    string
-	walletName string
-	email      string
-	password   string
+	walletAPIbaseURL  string
+	walletAuthbaseURL string
+	walletName        string
+	email             string
+	password          string
 
 	client      *http.Client
 	credentials *Credentials
@@ -29,13 +30,14 @@ type httpClient struct {
 
 // NewClient creates a new Wallet HTTP client. It authenticates with the wallet service
 // and resolves the wallet ID for the given walletName on first use.
-func NewClient(ctx context.Context, baseURL, email, password, walletName string) (Client, error) {
+func NewClient(ctx context.Context, apiBaseURL, authBaseURL, email, password, walletName string) (Client, error) {
 	c := &httpClient{
-		baseURL:    baseURL,
-		walletName: walletName,
-		email:      email,
-		password:   password,
-		client:     &http.Client{},
+		walletAPIbaseURL:  apiBaseURL,
+		walletAuthbaseURL: authBaseURL,
+		walletName:        walletName,
+		email:             email,
+		password:          password,
+		client:            &http.Client{},
 	}
 
 	if err := c.signIn(ctx); err != nil {
@@ -59,7 +61,7 @@ func (c *httpClient) signIn(ctx context.Context) error {
 		return fmt.Errorf("failed to marshal sign-in payload: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/public/signin", bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.walletAuthbaseURL+"/public/signin", bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("failed to create sign-in request: %w", err)
 	}
@@ -85,7 +87,7 @@ func (c *httpClient) signIn(ctx context.Context) error {
 }
 
 func (c *httpClient) refreshToken(ctx context.Context) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/public/refresh-token", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.walletAuthbaseURL+"/public/refresh-token", nil)
 	if err != nil {
 		return fmt.Errorf("failed to create refresh-token request: %w", err)
 	}
@@ -111,7 +113,7 @@ func (c *httpClient) refreshToken(ctx context.Context) error {
 }
 
 func (c *httpClient) resolveWalletID(ctx context.Context) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/wallets", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.walletAPIbaseURL+"/wallets", nil)
 	if err != nil {
 		return fmt.Errorf("failed to create list wallets request: %w", err)
 	}
@@ -188,7 +190,7 @@ func (c *httpClient) RegisterTransaction(ctx context.Context, amount int, offset
 		offset = 100
 	}
 
-	url := fmt.Sprintf("%s/wallets/%s/transactions", c.baseURL, c.walletID)
+	url := fmt.Sprintf("%s/wallets/%s/transactions", c.walletAPIbaseURL, c.walletID)
 
 	payload := map[string]any{
 		"amount":           amount,

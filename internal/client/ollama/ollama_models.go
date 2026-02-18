@@ -29,7 +29,7 @@ const (
 )
 
 type ToolCall struct {
-	Function FunctionTool `json:"function"`
+	Function FunctionToolResponse `json:"function"`
 }
 
 type ToolCallResponse struct {
@@ -70,22 +70,22 @@ type Options struct {
 }
 
 type ChatResponse struct {
-	Model     string          `json:"model"`
-	CreatedAt time.Time       `json:"created_at"`
-	Message   ResponseMessage `json:"message"`
+	Model              string          `json:"model"`
+	CreatedAt          time.Time       `json:"created_at"`
+	Message            ResponseMessage `json:"message"`
+	Done               bool            `json:"done"`
+	DoneReason         string          `json:"done_reason"`
+	TotalDuration      int64           `json:"total_duration"`
+	LoadDuration       int64           `json:"load_duration"`
+	PromptEvalCount    int             `json:"prompt_eval_count"`
+	PromptEvalDuration int64           `json:"prompt_eval_duration"`
+	EvalCount          int64           `json:"eval_count"`
 }
 
 type ResponseMessage struct {
-	Role               Role               `json:"role"`
-	Content            string             `json:"content"`
-	Thinking           string             `json:"thinking,omitempty"`
-	ToolCalls          []ToolCallResponse `json:"tool_calls,omitempty"`
-	Images             []string           `json:"images,omitempty"`
-	Done               bool               `json:"done"`
-	DoneReason         string             `json:"done_reason"`
-	TotalDuration      int64              `json:"total_duration"`
-	LoadDuration       int64              `json:"load_duration"`
-	PromptEvalCount    int                `json:"prompt_eval_count"`
-	PromptEvalDuration int64              `json:"prompt_eval_duration"`
-	EvalCount          int64              `json:"eval_count"`
+	Role      Role               `json:"role"`
+	Content   string             `json:"content"`
+	Thinking  string             `json:"thinking,omitempty"`
+	ToolCalls []ToolCallResponse `json:"tool_calls,omitempty"`
+	Images    []string           `json:"images,omitempty"`
 }

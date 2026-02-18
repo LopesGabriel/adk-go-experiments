@@ -5,6 +5,8 @@ golang.
 
 ## How to run
 
+`go run . web -port 9000 api webui -api_server_address http://localhost:9000/api`
+
 ### CLI
 
 Access the repository root and start the application with `go run .`

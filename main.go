@@ -6,16 +6,17 @@ import (
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/lopesgabriel/adk-go/internal/client/casanova"
-	"github.com/lopesgabriel/adk-go/internal/client/ollama"
 	"github.com/lopesgabriel/adk-go/internal/client/wallet"
-	"github.com/lopesgabriel/adk-go/internal/model"
 	"github.com/lopesgabriel/adk-go/internal/tool"
 	"google.golang.org/adk/agent"
 	"google.golang.org/adk/agent/llmagent"
 	"google.golang.org/adk/cmd/launcher"
 	"google.golang.org/adk/cmd/launcher/full"
+	"google.golang.org/adk/model/gemini"
 	toolx "google.golang.org/adk/tool"
+	"google.golang.org/genai"
 )
 
 const agentInstruction = `You are a specialized agent for the "Chá de Casa Nova" (Housewarming) system.
@@ -82,13 +83,25 @@ the donation status update, and the wallet transaction registration.`
 
 func main() {
 	ctx := context.Background()
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
 
 	// Ollama LLM
-	ollamaBaseURL := envOrDefault("OLLAMA_BASE_URL", "http://localhost:11434")
-	ollamaModel := envOrDefault("OLLAMA_MODEL", "qwen3:8b")
+	// ollamaBaseURL := envOrDefault("OLLAMA_BASE_URL", "http://localhost:11434")
+	// ollamaModel := envOrDefault("OLLAMA_MODEL", "qwen3:8b")
 
-	ollamaClient := ollama.NewOllamaHTTPClient(ollamaBaseURL)
-	llm := model.NewOllamaModelAdapter(ollamaModel, ollamaClient)
+	// ollamaClient := ollama.NewOllamaHTTPClient(ollamaBaseURL)
+	// llm := model.NewOllamaModelAdapter(ollamaModel, ollamaClient)
+
+	// Gemini LLM
+	model, err := gemini.NewModel(ctx, "gemini-2.5-flash", &genai.ClientConfig{
+		APIKey: os.Getenv("GOOGLE_API_KEY"),
+	})
+	if err != nil {
+		log.Fatalf("Failed to create model: %v", err)
+	}
 
 	// Casa-nova API client
 	casanovaBaseURL := envOrDefault("CASANOVA_BASE_URL", "http://localhost:8080")
@@ -105,12 +118,13 @@ func main() {
 	casanovaClient := casanova.NewClient(casanovaBaseURL, casanovaServiceToken)
 
 	// Wallet service client
-	walletBaseURL := envOrDefault("WALLET_BASE_URL", "http://localhost:8081")
+	walletAPIBaseURL := envOrDefault("WALLET_API_BASE_URL", "http://localhost:8083")
+	walletAuthBaseURL := envOrDefault("WALLET_AUTH_BASE_URL", "http://localhost:8081")
 	walletEmail := envOrDefault("WALLET_EMAIL", "")
 	walletPassword := envOrDefault("WALLET_PASSWORD", "")
 	walletName := envOrDefault("WALLET_NAME", "Chá de casa nova")
 
-	walletClient, err := wallet.NewClient(ctx, walletBaseURL, walletEmail, walletPassword, walletName)
+	walletClient, err := wallet.NewClient(ctx, walletAPIBaseURL, walletAuthBaseURL, walletEmail, walletPassword, walletName)
 	if err != nil {
 		log.Fatalf("Failed to create wallet client: %v", err)
 	}
@@ -136,7 +150,7 @@ func main() {
 
 	housewarmingAgent, err := llmagent.New(llmagent.Config{
 		Name:        "housewarming_pix_agent",
-		Model:       llm,
+		Model:       model,
 		Description: "Processes email content to identify Brazilian Pix transactions and match them with housewarming donation entries.",
 		Instruction: instruction,
 		Tools:       []toolx.Tool{listDesiredItemsTool, updateDonationStatusTool, registerWalletTransactionTool},

@@ -138,21 +138,27 @@ func (m *ollamaModelAdapter) adkToOllama(req *modelx.LLMRequest) *ollama.ChatReq
 			}
 
 			if part.FunctionCall != nil {
-				argumentsContent, err := json.Marshal(part.FunctionCall.Args)
-				if err != nil {
-					break
+				var arguments map[string]any
+				if part.FunctionCall.Args != nil {
+					argumentsJSON, err := json.Marshal(part.FunctionCall.Args)
+					if err != nil {
+						break
+					}
+					if err := json.Unmarshal(argumentsJSON, &arguments); err != nil {
+						break
+					}
 				}
 
 				ollamaReq.Messages = append(ollamaReq.Messages, ollama.RequestMessage{
-					Role: ollama.RoleUser,
+					Role: ollama.RoleAssistant,
 					ToolCalls: []ollama.ToolCall{
 						{
-							Function: ollama.FunctionTool{
-								Name: part.FunctionCall.Name,
+							Function: ollama.FunctionToolResponse{
+								Name:      part.FunctionCall.Name,
+								Arguments: arguments,
 							},
 						},
 					},
-					Content: string(argumentsContent),
 				})
 			}
 		}
@@ -178,12 +184,11 @@ func (m *ollamaModelAdapter) ollamaToADK(resp *ollama.ChatResponse) *modelx.LLMR
 				Args: toolCall.Function.Arguments,
 			},
 		})
-		resp.Message.Done = true
 	}
 
 	return &modelx.LLMResponse{
 		Content:      respContent,
-		TurnComplete: resp.Message.Done,
+		TurnComplete: resp.Done,
 	}
 }
 

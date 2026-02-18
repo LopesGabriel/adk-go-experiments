@@ -4,6 +4,7 @@ go 1.25.1
 
 require (
 	github.com/google/jsonschema-go v0.3.0
+	github.com/joho/godotenv v1.5.1
 	google.golang.org/adk v0.4.0
 	google.golang.org/genai v1.40.0
 )
