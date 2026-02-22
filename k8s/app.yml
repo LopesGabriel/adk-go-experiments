@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: agent
-          image: lopesgabriel/casa-nova-agent:1.0.2
+          image: lopesgabriel/casa-nova-agent:db8f1dd-arm64
           env:
             - name: CASANOVA_BASE_URL
               value: "http://core.casa-nova.svc.cluster.local:8080"
