@@ -13,7 +13,7 @@ import (
 	"google.golang.org/adk/agent"
 	"google.golang.org/adk/agent/llmagent"
 	"google.golang.org/adk/cmd/launcher"
-	"google.golang.org/adk/cmd/launcher/full"
+	"google.golang.org/adk/cmd/launcher/prod"
 	"google.golang.org/adk/model/gemini"
 	toolx "google.golang.org/adk/tool"
 	"google.golang.org/genai"
@@ -83,17 +83,7 @@ the donation status update, and the wallet transaction registration.`
 
 func main() {
 	ctx := context.Background()
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
-
-	// Ollama LLM
-	// ollamaBaseURL := envOrDefault("OLLAMA_BASE_URL", "http://localhost:11434")
-	// ollamaModel := envOrDefault("OLLAMA_MODEL", "qwen3:8b")
-
-	// ollamaClient := ollama.NewOllamaHTTPClient(ollamaBaseURL)
-	// llm := model.NewOllamaModelAdapter(ollamaModel, ollamaClient)
+	_ = godotenv.Load()
 
 	// Gemini LLM
 	model, err := gemini.NewModel(ctx, "gemini-2.5-flash", &genai.ClientConfig{
@@ -163,8 +153,8 @@ func main() {
 		AgentLoader: agent.NewSingleLoader(housewarmingAgent),
 	}
 
-	l := full.NewLauncher()
-	if err = l.Execute(ctx, config, os.Args[1:]); err != nil {
+	l := prod.NewLauncher()
+	if err = l.Execute(ctx, config, []string{"web", "-port=9000", "api"}); err != nil {
 		log.Fatalf("Run failed: %v\n\n%s", err, l.CommandLineSyntax())
 	}
 }

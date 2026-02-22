@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent
+  namespace: casa-nova
+  labels:
+    app: agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agent
+  template:
+    metadata:
+      labels:
+        app: agent
+    spec:
+      containers:
+        - name: agent
+          image: lopesgabriel/casa-nova-agent:1.0.2
+          env:
+            - name: CASANOVA_BASE_URL
+              value: "http://core.casa-nova.svc.cluster.local:8080"
+            - name: CASANOVA_HOUSEWARMING_ID
+              value: "5d304d60-ee85-423c-b21a-7df47be7f74a"
+            - name: WALLET_API_BASE_URL
+              value: "http://wallet.tellawl.svc.cluster.local:8080"
+            - name: WALLET_AUTH_BASE_URL
+              value: "http://member-service.tellawl.svc.cluster.local:8080"
+            - name: WALLET_NAME
+              value: "Chá de casa nova"
+            - name: CASANOVA_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: casa-nova-agent-secret
+                  key: CASANOVA_SERVICE_TOKEN
+            - name: WALLET_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: casa-nova-agent-secret
+                  key: WALLET_EMAIL
+            - name: WALLET_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: casa-nova-agent-secret
+                  key: WALLET_PASSWORD
+            - name: GOOGLE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: casa-nova-agent-secret
+                  key: GOOGLE_API_KEY
+          ports:
+            - name: http
+              containerPort: 9000
+              protocol: TCP
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent
+  namespace: casa-nova
+  labels:
+    app: agent
+spec:
+  type: ClusterIP
+  selector:
+    app: agent
+  ports:
+    - name: http
+      port: 9000
+      targetPort: 9000

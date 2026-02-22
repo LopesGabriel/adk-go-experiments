@@ -1,2 +1,3 @@
 .env
 debug.json
+secrets.yml
